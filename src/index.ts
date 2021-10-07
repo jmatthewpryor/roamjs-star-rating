@@ -1,4 +1,4 @@
-import { addStyle, toConfig, runExtension, createButtonObserver, getUidsFromButton, getTreeByBlockUid } from "roam-client";
+import { addStyle, toConfig, runExtension, createButtonObserver, getUidsFromButton, getTreeByBlockUid, getTreeByPageName } from "roam-client";
 import { createConfigObserver } from "roamjs-components";
 import { renderStartRating } from "./StarRating";
 
@@ -30,32 +30,20 @@ runExtension(ID, () => {
     config: {
       tabs: [
         {
-          id: "import",
+          id: "rating",
           fields: [
             {
-              type: "multitext",
-              title: "calendars",
+              type: "number",
+              title: "maximum",
               description:
-                'The calendar ids to import events from. To find your calendar id, go to your calendar settings and scroll down to "Integrate Calendar".',
-              defaultValue: ["dvargas92495@gmail.com"],
-            },
-            {
-              type: "flag",
-              title: "include event link",
-              description:
-                "Whether or not to hyperlink the summary with the event link. Ignored if 'format' is specified.",
-            },
-            {
-              type: "flag",
-              title: "skip free",
-              description:
-                "Whether or not to filter out events marked as 'free'",
+                "The maximum stars in a rating",
+              defaultValue: 5,
             },
             {
               type: "text",
-              title: "format",
+              title: "template",
               description:
-                "The format events should output in when imported into Roam",
+                "The template to run after a rating",
             },
           ],
         },
@@ -68,14 +56,38 @@ runExtension(ID, () => {
     attribute: "rating-button",
     render: (b: HTMLButtonElement) => {
       const { blockUid } = getUidsFromButton(b);
-      const tree = getTreeByBlockUid(blockUid);
-      const initialValueNode = tree.children.find(
+      let tree = getTreeByBlockUid(blockUid);
+      let valueBlockUid = null;
+      let initialValue = 1;
+      let initialValueNode = tree.children.find(
         (c) => !isNaN(parseInt(c.text))
       );
-      const initialValue = initialValueNode
+      if (!initialValueNode) {
+        valueBlockUid = window.roamAlphaAPI.util.generateUID();
+        window.roamAlphaAPI.createBlock({
+          location: { "parent-uid": blockUid, order: 0 },
+          block: { string: initialValue.toString() , uid: valueBlockUid},
+        });
+      }
+      else {
+        valueBlockUid = initialValueNode.uid;
+        initialValue = initialValueNode
         ? parseInt(initialValueNode.text)
         : 0;
-        renderStartRating(initialValue, initialValueNode.uid, b.parentElement);
+      }
+
+      const configTree = getTreeByPageName(CONFIG);
+      const ratingTree = configTree.find((t) => /rating/i.test(t.text));
+    
+      const maxSetting = ratingTree?.children
+        ?.find?.((t) => /maximum/i.test(t.text))
+        ?.children?.[0]?.text?.trim?.();
+
+      const template = ratingTree?.children
+      ?.find?.((t) => /template/i.test(t.text))
+      ?.children?.[0]?.text?.trim?.();
+
+      renderStartRating(initialValue, Number.parseInt(maxSetting), valueBlockUid, template, b.parentElement);
     },
   });
 
