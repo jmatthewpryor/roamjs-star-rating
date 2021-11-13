@@ -5,3 +5,4 @@ out
 .env.local
 .history/
 .DS_Store
+.secret

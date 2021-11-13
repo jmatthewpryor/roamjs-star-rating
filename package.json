@@ -1,6 +1,6 @@
 {
   "name": "star-rating",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A Star Rating widgetfor  Roam!",
   "main": "./build/main.js",
   "scripts": {

@@ -13,6 +13,7 @@ addStyle(`
   height: 2em;
   fill: none;
   stroke: black;
+  strokeWidth: 0.5px
 }
 
 .roam-star-rating-star-active {
