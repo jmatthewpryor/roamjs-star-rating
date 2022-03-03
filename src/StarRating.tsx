@@ -56,13 +56,13 @@ function StarIcon({
   const StarRating = ({
     initialValue,
     maximumStars,
-    blockUid,
-    smartBlockTemplate
+    label,
+    updateRating
   }: {
     initialValue: number;
     maximumStars: number;
-    blockUid: string;
-    smartBlockTemplate: string;
+    label: string;
+    updateRating: (rating: number) => void;
   }) : JSX.Element => {
     const [rating, setRating] = useState(initialValue);
     const [hoverRating, setHoverRating] = useState(initialValue);
@@ -74,28 +74,13 @@ function StarIcon({
     };
     const onSaveRating = (index: number) => {
       setRating(index);
-      window.roamAlphaAPI.updateBlock({
-        block: { uid: blockUid, string: index.toString() },
-      });
-      console.log(`StarRating: blockUid ${blockUid} smartBlockTemplate ${smartBlockTemplate}`)
-      if( smartBlockTemplate ) { 
-        const valueBlockUid: string = window.roamAlphaAPI.util.generateUID();
-        window.roamAlphaAPI.createBlock({
-          location: { "parent-uid": blockUid, order: 1000 /* at end */ },
-          block: { string: '' , uid: valueBlockUid},
-        });
-        window.roamjs.extension.smartblocks.triggerSmartblock({
-          srcName: smartBlockTemplate,
-          targetUid: valueBlockUid,
-          variables: {
-            'rating': index.toString(),
-            'wow': 'Wee'
-          }
-        })
-      };
+      updateRating(index);
     };
     return(
       <div className="roam-star-rating">
+        {label && label.length > 0 &&
+          <span className="roam-star-rating-label">{label}</span>
+        }
         {Array.from(Array(maximumStars).keys()).map((index) => {
           return (
             <RatingIcon 
@@ -112,17 +97,14 @@ function StarIcon({
     );
   }
 
-export const DemoTallyCounter = (): JSX.Element => (
-  <StarRating maximumStars={5} blockUid={''} initialValue={0} smartBlockTemplate={null}/>
-);
 export const renderStartRating = (
   initialValue: number,
   maximumStars: number,
-  blockUid: string,
-  smartBlockTemplate: string,
+  label: string,
+  updateRating: (rating: number) => void,
   p: HTMLElement
 ): void => {
-    ReactDOM.render(<StarRating maximumStars={maximumStars} blockUid={blockUid} initialValue={initialValue} smartBlockTemplate={smartBlockTemplate}/>, p);
+    ReactDOM.render(<StarRating maximumStars={maximumStars} initialValue={initialValue} label={label} updateRating={updateRating}/>, p);
 }
 
 export default StarRating;
